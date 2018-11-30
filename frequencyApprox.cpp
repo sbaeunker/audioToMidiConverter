@@ -26,7 +26,9 @@ void FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDis
 			std::cout << std::to_string(velocities[i][j]) << ",";
 		}
 		std::cout << std::endl;
-	}	
+	}
+	
+	//std::cout << std::to_string(sampleRate) << std::endl;
 	free(velocities);
 }
 
@@ -50,8 +52,8 @@ short ** FrequencyApprox::normalize(float ** keyStrokes, int nrows){
     }
 	for(int i=0; i < nrows; i++){//find maximum and applay weighting, here: sqrt
 		for(int j=0; j< NO_KEYS; j++){
-			if(keyStrokes[i][j]> max){
-				keyStrokes[i][j] = sqrt(keyStrokes[i][j]); //weighted with sqrt;
+			keyStrokes[i][j] = sqrt(keyStrokes[i][j]); //weighted with sqrt;
+			if(keyStrokes[i][j]> max){				
 				max = keyStrokes[i][j];				
 			}
 		}
@@ -67,23 +69,23 @@ short ** FrequencyApprox::normalize(float ** keyStrokes, int nrows){
 }
 
 float * FrequencyApprox::frequencyToKeys(float * spectrum, int size, int sampleRate){
-	float fres= sampleRate / size;//frequency resolution
-	
+	float fres= (float)sampleRate / (float)size; //frequency resolution
+	//std::cout << std::to_string(fres) << std::endl;
 	float * velocity = (float *) malloc(sizeof(float)*NO_KEYS); //force of each key stroke
 	float * fgu = (float*) malloc(sizeof(float)*NO_KEYS);
 	float * fgo = (float*) malloc(sizeof(float)*NO_KEYS);
 	//define frequencyBins for each key through upper and lower limits
 	for(int i=0; i < NO_KEYS; i++){
-		fgu[i]= 440.0 * pow(2.0,((i-49.5)/12));// obere grenzfrequenzen
-		fgo[i]= 440.0 * pow(2.0,((i-48.5)/12));// untere grenzfrequenzen
+		fgu[i]= 440.0 * pow(2.0,((i-48.5)/12.0));// obere grenzfrequenzen 
+		fgo[i]= 440.0 * pow(2.0,((i-47.5)/12.0));// untere grenzfrequenzen
 	}
 	for(int i = 0; i <  NO_KEYS; i++){
 		velocity[i] = 0.0f; //init with 0 if not all keys are played
 	}
-	for(int i = 0; i< (int) size; i++){ //only using to nyquist f 	
+	for(int i = 0; i < (int) size; i++){ //only to nyquist f 	
 		int j=0;
 		for(j;j < NO_KEYS; j++){			
-			if(i*fres > fgu[j] && i*fres <= fgo[j]){//frequency is in bin of key j
+			if((i+1)*fres > fgu[j] && (i+1)*fres <= fgo[j]){//frequency is in bin of key j
 				velocity[j] =velocity[j]+ spectrum[i]; //sum up all frequencies in bin
 				break;
 			}
