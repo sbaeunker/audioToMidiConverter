@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
-#include <math.h> 
+#include <math.h>
+#include <fstream>
+
 #include "frequencyApprox.h"
 #define MIDI_MAX 127.0 //maximum amplitude in MIDI
 #define NO_KEYS 88
@@ -8,28 +10,34 @@
 FrequencyApprox::FrequencyApprox(){
 	
 }
-void FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding)
+short ** FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, bool writeCSV, int &midiTempo, int &nrows)
 {	
 	float * samples; //sample Array to be filled
-	int size; 
-	int sampleRate; 
+	int size;  //sampleSize
+	int sampleRate;  
 	samples = loadAudiofile(filename, size, sampleRate); //fill Samples
 	//std::cout << "No. of samples read: "<<std::to_string(size) << std::endl;
-	int nrows, ncolumns;
+	int ncolumns;
 	float ** mfft = movingFFT(samples, size, windowSize ,windowDistance , zeroPadding, nrows, ncolumns); //calculate fft for windows
 	free(samples);
 	short ** velocities = velocityTable(mfft, nrows, ncolumns, sampleRate);
 	free(mfft);
-	
-	for(int i=0; i < nrows; i++){		
-		for(int j=0; j< NO_KEYS; j++){
-			std::cout << std::to_string(velocities[i][j]) << ",";
+	midiTempo = (int) 1000000.0 * ( (double)windowDistance/(double)sampleRate );
+	if(writeCSV){ //write to CSV
+		std::cout << "write to csv" << std::endl;
+		std::ofstream csv;
+		std::string file = std::string(filename);
+		csv.open (file.replace(file.find(".wav"),4,".csv"));
+		for(int i=0; i < nrows; i++){
+			csv << std::to_string(midiTempo) << ",";	
+			for(int j=0; j< NO_KEYS; j++){
+				csv << std::to_string(velocities[i][j]) << ",";
+			}
+			csv << std::endl;
 		}
-		std::cout << std::endl;
+		csv.close();
 	}
-	
-	//std::cout << std::to_string(sampleRate) << std::endl;
-	free(velocities);
+	return velocities;
 }
 
 short ** FrequencyApprox::velocityTable(float ** mfft, int nrows, int ncolumns, int sampleRate){

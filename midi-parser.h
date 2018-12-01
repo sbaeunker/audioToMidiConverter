@@ -26,12 +26,12 @@ public:
   //void storeMax();
 
   void loadRawDataFromCsv(const char *filename, char delimiter = ',');
+  
+  MIDITrack getMidiTrack(short ** midiTable,int frames, unsigned char program = 0, unsigned char channel = 0);
+  MIDITrack getMidiTrack(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 
-  MIDITrack getMidiTrack(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0, bool holding = false);
-
-  MIDIFile getMidiFile(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0, bool holding = false);
-
-  MIDIFile getMidiFile(const char *filename, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0, bool holding = true);
+  MIDIFile getMidiFile(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
+  MIDIFile getMidiFile(const char *filename, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 };
 
 #endif

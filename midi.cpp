@@ -1,5 +1,6 @@
 #include <cstring>
 #include <fstream>
+#include <string>
 
 #include "midi.h"
 
@@ -170,3 +171,4 @@ void MIDIFile::saveAs(const char *filePath)
 
     outfile.close();
 }
+

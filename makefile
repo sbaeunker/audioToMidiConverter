@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc -std=c++14
 CXX=g++
 RM=rm -f
 CPPFLAGS=-g $(shell root-config --cflags)
