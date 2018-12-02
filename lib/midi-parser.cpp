@@ -59,42 +59,22 @@ vector<int> MIDIParser::getLargest(vector<int> nextVolumes, vector<uchar> lastVo
 
 MIDITrack MIDIParser::getMidiTrack(short **midiTable, int frames, int maxNoteCount, unsigned char program, unsigned char channel)
 {
-    MIDITrack track{tempo};
-    track.programChange(channel, program);
-
-    vector<uchar> noteStatus;
-    noteStatus.assign(noteCount, 0);
-
-    vector<int> largestDiffs; //stores the most important notes to play
-    largestDiffs.assign(maxNoteCount, 0);
+    cout << "track 1 " << maxNoteCount << endl;
+    rawData.clear();
 
     for (unsigned frame = 0; frame < frames; ++frame)
     {
         vector<int> row(midiTable[frame], midiTable[frame] + noteCount);
-        largestDiffs = getLargest(row, noteStatus, maxNoteCount);
-        for (unsigned i = 0; i < maxNoteCount; ++i) //only play most differing keys
-        {
-            int noteIndex = largestDiffs[i];
-            int volume = row[noteIndex];
-            int lastVolume = noteStatus[noteIndex];
-            if (abs(volume - lastVolume) >= noteSwitchThreshold)
-            {
-                track.noteOff(channel, firstNoteIndex + noteIndex); //first turn note off
-                noteStatus[noteIndex] = 0;
-                if (volume >= minVolume)
-                {
-                    track.noteOn(channel, firstNoteIndex + noteIndex, volume);
-                    noteStatus[noteIndex] = volume;
-                }
-            }
-        }
-        track.addDelay(ppq); // blame
+        // insert delay at the beginning
+        row.insert(row.begin(), tempo); // blame
+        rawData.push_back(row);
     }
-    return track;
+    return getMidiTrack(false, maxNoteCount, program, channel);
 }
 
-MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program, unsigned char channel)
+MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, int maxNoteCount, unsigned char program, unsigned char channel)
 {
+    cout << "track 2 " << maxNoteCount << endl;
     if (getTempoFromData && rawData.size() > 2 && rawData[1].size() > 1)
         tempo = rawData[1][0];
 
@@ -103,6 +83,8 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
 
     vector<uchar> noteStatus;
     noteStatus.assign(noteCount, 0);
+
+    vector<int> largestDiffs(maxNoteCount); //stores the most important notes to play
 
     for (unsigned i = 0; i < rawData.size(); ++i)
     {
@@ -118,29 +100,35 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
             unsigned ppqDelay = ppq * delay / (tempo); // transform delay in us to delay in PPQ
             track.addDelay(ppqDelay);
 
-            for (unsigned note = 0; note < rowData.size() - 1; ++note)
+            largestDiffs = getLargest(rowData, noteStatus, maxNoteCount);
+
+            for (unsigned k = 0; k < rowData.size() - 1 && k < maxNoteCount; ++k)
             {
-                uchar volume = rowData[note + 1] & 0xFF;
+                int noteIndex = largestDiffs[k];
+                uchar volume = rowData[noteIndex + 1] & 0xFF;
+                uchar lastVolume = noteStatus[noteIndex];
                 // noteOff, if it will change (diff to previous value > threshold) or volume too low
-                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold)
+                if (abs(lastVolume - volume) >= noteSwitchThreshold)
                 {
-                    track.noteOff(channel, firstNoteIndex + note);
-                    noteStatus[note] = 0;
+                    track.noteOff(channel, firstNoteIndex + noteIndex);
+                    noteStatus[noteIndex] = 0;
 
                     if (volume >= minVolume) // noteOn, if volume > minVolume
                     {
-                        track.noteOn(channel, firstNoteIndex + note, volume);
-                        noteStatus[note] = volume;
+                        track.noteOn(channel, firstNoteIndex + noteIndex, volume);
+                        noteStatus[noteIndex] = volume;
                     }
                 }
             }
         }
     }
+
     return track;
 }
 
 MIDIFile MIDIParser::getMidiFile(short **midiTable, int frames, int maxNoteCount, unsigned char program, unsigned char channel)
 {
+    cout << "test1" << maxNoteCount << endl;
     MIDIFile file{ppq};
     MIDITrack track = getMidiTrack(midiTable, frames, maxNoteCount, program, channel);
 
@@ -150,10 +138,11 @@ MIDIFile MIDIParser::getMidiFile(short **midiTable, int frames, int maxNoteCount
     return file;
 }
 
-MIDIFile MIDIParser::getMidiFile(bool getTempoFromData, unsigned char program, unsigned char channel)
+MIDIFile MIDIParser::getMidiFile(bool getTempoFromData, int maxNoteCount, unsigned char program, unsigned char channel)
 {
+    cout << "test2" << maxNoteCount << endl;
     MIDIFile file{ppq};
-    MIDITrack track = getMidiTrack(getTempoFromData, program, channel);
+    MIDITrack track = getMidiTrack(getTempoFromData, maxNoteCount, program, channel);
 
     file.addTrack(track);
     file.generate();
@@ -207,9 +196,9 @@ void MIDIParser::loadRawDataFromCsv(const char *filename, char delimiter)
 }
 
 // legacy method to get MIDI file from csv input
-MIDIFile MIDIParser::getMidiFile(const char *filename, bool getTempoFromData, unsigned char program, unsigned char channel)
+MIDIFile MIDIParser::getMidiFile(const char *filename, bool getTempoFromData, int maxNoteCount, unsigned char program, unsigned char channel)
 {
     cout << "getting MIDI file from csv file " << filename << endl;
     loadRawDataFromCsv(filename);
-    return getMidiFile(getTempoFromData, program, channel);
+    return getMidiFile(getTempoFromData, maxNoteCount, program, channel);
 }

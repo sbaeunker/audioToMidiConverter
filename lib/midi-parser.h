@@ -35,12 +35,12 @@ public:
   MIDITrack getMidiTrack(short **midiTable, int frames, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
   MIDIFile getMidiFile(short **midiTable, int frames, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
 
-  MIDITrack getMidiTrack(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
-  MIDIFile getMidiFile(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
+  MIDITrack getMidiTrack(bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
+  MIDIFile getMidiFile(bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
 
   // legacy methods to handle CSV file input
   void loadRawDataFromCsv(const char *filename, char delimiter = ',');
-  MIDIFile getMidiFile(const char *filename, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
+  MIDIFile getMidiFile(const char *filename, bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
 };
 
 #endif

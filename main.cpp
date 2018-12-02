@@ -78,7 +78,7 @@ MIDIFile demo()
 	temp.noteCount = 22;
 	temp.firstNoteIndex = 60;
 	temp.rawData = testVector;
-	return temp.getMidiFile(false, 4);
+	return temp.getMidiFile(false, 88, 4);
 }
 
 int main(int argc, char *argv[])
