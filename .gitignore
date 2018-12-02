@@ -1,2 +1,3 @@
-*.exe
-*.mid
+**.exe
+**.mid
+output/**.*
