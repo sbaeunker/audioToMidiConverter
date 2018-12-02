@@ -100,9 +100,7 @@ MIDITrack MIDIParser::getMidiTrack(short ** midiTable,int frames,int maxNotes, i
 	
     for(int frame = 0; frame < frames; frame++){
 		largestDiffs = getLargest(midiTable[frame], noteStatus ,maxNotes);
-		std::cout << std::endl;	
 		for(int i = 0; i< maxNotes; i++){//only play most differing keys
-			std::cout << std::to_string(largestDiffs[i]) << " ";
 			if (abs(midiTable[frame][largestDiffs[i]]- noteStatus[largestDiffs[i]]) > noteSwitchThreshold){//only play those when they meet the threshold
 				track.noteOff(channel, firstNoteIndex + largestDiffs[i]); //first turn note off
 				noteStatus[largestDiffs[i]] = 0;
