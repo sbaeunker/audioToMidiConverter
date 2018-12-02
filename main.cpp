@@ -1,9 +1,9 @@
 #include <vector>
 #include <iostream>
-#include "midi.h"
-#include "midi-parser.h"
 
-#include "frequencyApprox.h"
+#include "lib/midi.h"
+#include "lib/midi-parser.h"
+#include "lib/frequencyApprox.h"
 
 
 

@@ -5,7 +5,7 @@ CPPFLAGS=-g $(shell root-config --cflags)
 LDFLAGS=-g $(shell root-config --ldflags)
 LDLIBS=$(shell root-config --libs)
  
-SRCS=main.cpp midi.cpp midi-parser.cpp kissfft/kiss_fftr.c kissfft/kiss_fft.c audiofile/AudioFile.cpp frequencyApprox.cpp
+SRCS=main.cpp lib/midi.cpp lib/midi-parser.cpp lib/kissfft/kiss_fftr.c lib/kissfft/kiss_fft.c lib/audiofile/AudioFile.cpp lib/frequencyApprox.cpp
 OBJS=$(subst .cc,.o,$(SRCS))
 
 all: main
@@ -13,7 +13,7 @@ all: main
 main: $(OBJS)
 	$(CXX) $(LDFLAGS) -o main $(OBJS) $(LDLIBS) 
 
-main.o: main.cpp midi.h midi-parser.h
+main.o: main.cpp lib/midi.h lib/midi-parser.h
 
 midi.o: midi.h midi.cpp
 
