@@ -12,7 +12,14 @@ using namespace std;
 const uint32_t DEFAULT_TEMPO = 500 * 1000; // microseconds for one quarter note / beat
 const uint16_t DEFAULT_PPQ = 480;          // parts per quarter note
 
-MIDIParser::MIDIParser(uint32_t tempo, uint16_t ppq) : tempo(tempo), ppq(ppq), noteCount(NOTE_COUNT), firstNoteIndex(FIRST_NOTE_INDEX)
+MIDIParser::MIDIParser(uint32_t tempo, uint16_t ppq, uchar minVolume, uchar noteSwitchThreshold)
+    : tempo(tempo), ppq(ppq),
+      minVolume(minVolume), noteSwitchThreshold(noteSwitchThreshold),
+      noteCount(NOTE_COUNT), firstNoteIndex(FIRST_NOTE_INDEX)
+{
+}
+
+MIDIParser::MIDIParser(uint32_t tempo, uint16_t ppq) : MIDIParser(tempo, ppq, MIN_VOLUME, NOTE_SWITCH_THRESHOLD)
 {
 }
 
@@ -27,47 +34,30 @@ struct MIDIParser::comp
     const vector<int> &_v;
 };
 
-vector<int> MIDIParser::getLargest(vector<int> midiRow, vector<uchar> playedNotes, int maxNotes)
+vector<int> MIDIParser::getLargest(vector<int> nextVolumes, vector<uchar> lastVolumes, int maxNoteCount)
 {
-    size_t length = midiRow.size() < playedNotes.size() ? midiRow.size() : playedNotes.size();
+    size_t length = nextVolumes.size() < lastVolumes.size() ? nextVolumes.size() : lastVolumes.size();
+    if (maxNoteCount > length)
+        maxNoteCount = length;
 
-    cout << length << endl;
-
-    vector<int> v(length);
-
-    cout << length << endl;
+    vector<int> diffs(length); // list of absolute differences between to-be and as-is volume
     for (unsigned i = 0; i < length; ++i)
     {
-        v[i] = abs(midiRow[i] - playedNotes[i]); //absolute differences
+        diffs[i] = abs(nextVolumes[i] - lastVolumes[i]); //absolute differences
     }
-    cout << length << endl;
 
-    vector<int> vx(length);
+    vector<int> temp(length); // simple array of 1,2,3,4,...,maxNoteCount
     for (unsigned i = 0; i < length; ++i)
     {
-        vx[i] = i; // fill with indexes
+        temp[i] = i;
     }
 
-    partial_sort(vx.begin(), vx.begin() + maxNotes, vx.end(), comp(v)); // sort vx after largest values in v
-    return vx;                                                          // vx[0..maxNotes] contains index of keys to play
+    // sort temp after largest values in v
+    partial_sort(temp.begin(), temp.begin() + maxNoteCount, temp.end(), comp(diffs));
+    return temp; // temp[0..maxNoteCount] contains index of keys to play
 }
 
-vector<int> MIDIParser::getLargest(short *midiRow, vector<uchar> playedNotes, int maxNotes)
-{
-    vector<int> v(midiRow, midiRow + NOTE_COUNT);
-    for (int i = 0; i < v.size(); ++i)
-    {
-        v[i] = abs(v[i] - playedNotes[i]); //absolute differences
-    }
-    vector<int> vx;
-    vx.resize(v.size());
-    for (int i = 0; i < v.size(); ++i)
-        vx[i] = i;                                               //fill with indexes
-    partial_sort(vx.begin(), vx.begin() + 5, vx.end(), comp(v)); //sort vx after largest values in v
-    return vx;                                                   //vx[0..maxNotes] contains index of keys to play
-}
-
-MIDITrack MIDIParser::getMidiTrack(short **midiTable, int frames, int maxNotes, int noteSwitchThreshold, int minVolume, unsigned char program, unsigned char channel)
+MIDITrack MIDIParser::getMidiTrack(short **midiTable, int frames, int maxNoteCount, unsigned char program, unsigned char channel)
 {
     MIDITrack track{tempo};
     track.programChange(channel, program);
@@ -76,18 +66,15 @@ MIDITrack MIDIParser::getMidiTrack(short **midiTable, int frames, int maxNotes, 
     noteStatus.assign(noteCount, 0);
 
     vector<int> largestDiffs; //stores the most important notes to play
-    largestDiffs.assign(maxNotes, 0);
+    largestDiffs.assign(maxNoteCount, 0);
 
     for (unsigned frame = 0; frame < frames; ++frame)
     {
-        short *row = midiTable[frame];
-        vector<int> row2(row, row + noteCount);
-        cout << "test " << row2.size() << endl;
-        largestDiffs = getLargest(row, noteStatus, maxNotes);
-        for (unsigned i = 0; i < maxNotes; ++i) //only play most differing keys
+        vector<int> row(midiTable[frame], midiTable[frame] + noteCount);
+        largestDiffs = getLargest(row, noteStatus, maxNoteCount);
+        for (unsigned i = 0; i < maxNoteCount; ++i) //only play most differing keys
         {
             int noteIndex = largestDiffs[i];
-            // int noteIndex = i;
             int volume = row[noteIndex];
             int lastVolume = noteStatus[noteIndex];
             if (abs(volume - lastVolume) >= noteSwitchThreshold)
@@ -114,9 +101,6 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
     MIDITrack track{tempo};
     track.programChange(channel, program);
 
-    int noteSwitchThreshold = 5; // blame
-    int minVolume = 16;          // blame
-
     vector<uchar> noteStatus;
     noteStatus.assign(noteCount, 0);
 
@@ -138,7 +122,7 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
             {
                 uchar volume = rowData[note + 1] & 0xFF;
                 // noteOff, if it will change (diff to previous value > threshold) or volume too low
-                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold || volume < minVolume)
+                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold)
                 {
                     track.noteOff(channel, firstNoteIndex + note);
                     noteStatus[note] = 0;
@@ -153,6 +137,17 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
         }
     }
     return track;
+}
+
+MIDIFile MIDIParser::getMidiFile(short **midiTable, int frames, int maxNoteCount, unsigned char program, unsigned char channel)
+{
+    MIDIFile file{ppq};
+    MIDITrack track = getMidiTrack(midiTable, frames, maxNoteCount, program, channel);
+
+    file.addTrack(track);
+    file.generate();
+
+    return file;
 }
 
 MIDIFile MIDIParser::getMidiFile(bool getTempoFromData, unsigned char program, unsigned char channel)

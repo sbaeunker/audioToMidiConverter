@@ -11,8 +11,6 @@ const int WINDOW_SIZE = 1000;
 const int WINDOW_DISTANCE = 200;
 const int ZERO_PADDING = 0;
 const int MAX_NOTES = 88;			 // limit midi messages per time unit to enable playing it with midi hardware interface
-const int NOTE_SWITCH_THRESHOLD = 4; // don't switch on too similar notes ... less midi Messages
-const int MIN_VOLUME = 5;			 //don't play too silent notes ... less midi Messages
 const uint32_t TEMPO = 300 * 1000;   // microseconds for one quarter note / beat (default = 500 ms = 500 * 1000 us)
 const uint16_t PPQ = 460;			 // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
 
@@ -105,8 +103,6 @@ int main(int argc, char *argv[])
 	int windowDistance = WINDOW_DISTANCE;
 	int zeroPadding = ZERO_PADDING;
 	int maxNotes = MAX_NOTES;
-	int noteSwitchThreshold = NOTE_SWITCH_THRESHOLD;
-	int minVolume = MIN_VOLUME;
 
 	// read args
 	for (int i = 0; i < argc; ++i)
@@ -142,12 +138,8 @@ int main(int argc, char *argv[])
 
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;
-	MIDIParser parse{tempo, PPQ};
-	MIDITrack track = parse.getMidiTrack(midiTable, frames, maxNotes, noteSwitchThreshold, minVolume, 0, 0);
-
-	MIDIFile result;
-	result.addTrack(track);
-	result.generate();
+	MIDIParser parser{tempo, PPQ};
+	MIDIFile midiFile = parser.getMidiFile(midiTable, frames, maxNotes);
 
 	// save as MIDI file
 	size_t slashIndex = inputFilepath.find_last_of("/\\");
@@ -155,5 +147,5 @@ int main(int argc, char *argv[])
 	// get file name without parent directories and file extension
 	string inputFilename = inputFilepath.substr(slashIndex + 1, dotIndex - slashIndex - 1);
 	string outputFilename = "./output/" + inputFilename + ".mid";
-	result.saveAs(outputFilename.c_str());
+	midiFile.saveAs(outputFilename.c_str());
 }
