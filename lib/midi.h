@@ -56,7 +56,7 @@ class MIDITrack : public MIDIBase
     void pitchWheel(uchar channel, uchar pitchLSB, uchar pitchMSB);
 
     template <typename... Args>
-    void addMetaEvent(uchar key, uchar metatype, uchar length, Args... args);
+    void addMetaEvent(uchar metatype, uchar length, Args... args);
 };
 
 class MIDIFile : public MIDIBase

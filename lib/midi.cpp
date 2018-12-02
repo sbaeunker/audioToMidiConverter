@@ -1,4 +1,3 @@
-#include <cstring>
 #include <fstream>
 #include <string>
 
@@ -21,7 +20,7 @@ void MIDIBase::pushBackNumber(size_t data, size_t numberOfBytes)
 
 void MIDIBase::pushBackString(const char *s)
 {
-    insert(end(), s, s + strlen(s));
+    insert(end(), s, s + string(s).length());
 }
 
 template <typename... Args>
@@ -36,7 +35,8 @@ void MIDIBase::pushBackBytes() {}
 
 MIDITrack::MIDITrack(uint32_t tempo) : MIDIBase(), delay(0), tempo(tempo)
 {
-    addMetaEvent(0x0F, 0x51, 3, (tempo >> 16) & 0xFF, (tempo >> 8) & 0xFF, tempo & 0xFF);
+    // set tempo
+    addMetaEvent(0x51, 3, (tempo >> 16) & 0xFF, (tempo >> 8) & 0xFF, tempo & 0xFF);
 }
 MIDITrack::MIDITrack() : MIDITrack(DEFAULT_TEMPO) // default tempo = DEFAULT_TEMPO
 {
@@ -116,12 +116,12 @@ void MIDITrack::pitchWheel(uchar channel, uchar pitchLSB, uchar pitchMSB)
 }
 
 template <typename... Args>
-void MIDITrack::addMetaEvent(uchar key, uchar metatype, uchar length, Args... args)
+void MIDITrack::addMetaEvent(uchar metatype, uchar length, Args... args)
 {
     // TODO: check if meta = 0xFF or 0xF0...0xFF
-    // TODO: implement length > 255
+    // TODO: implement length > 255 (variable length values)
     // TODO: args only 0-127 or 0-255?
-    addEventRaw(0xF0 | key, metatype, length, args...);
+    addEventRaw(0xFF, metatype, length, args...);
 }
 
 /*********** MIDI FILE *******************************/
@@ -154,7 +154,7 @@ void MIDIFile::generate()
 
     for (unsigned i = 0; i < tracks.size(); ++i)
     {
-        tracks[i].addMetaEvent(0x0F, 0x2F, 0); // mark track end
+        tracks[i].addMetaEvent(0x2F, 0); // mark track end
 
         pushBackString("MTrk");                            // track marker
         pushBackNumber(tracks[i].size(), 4);               // track length
@@ -171,4 +171,3 @@ void MIDIFile::saveAs(const char *filePath)
 
     outfile.close();
 }
-
