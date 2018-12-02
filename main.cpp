@@ -10,9 +10,9 @@
 const int WINDOW_SIZE = 1000;
 const int WINDOW_DISTANCE = 200;
 const int ZERO_PADDING = 0;
-const int MAX_NOTES = 88;			 // limit midi messages per time unit to enable playing it with midi hardware interface
-const uint32_t TEMPO = 300 * 1000;   // microseconds for one quarter note / beat (default = 500 ms = 500 * 1000 us)
-const uint16_t PPQ = 460;			 // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
+const int MAX_NOTES = 88;		   // limit midi messages per time unit to enable playing it with midi hardware interface
+const uint32_t TEMPO = 300 * 1000; // microseconds for one quarter note / beat (default = 500 ms = 500 * 1000 us)
+const uint16_t PPQ = 460;		   // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
 
 using namespace std;
 typedef unsigned char uchar;
@@ -77,8 +77,7 @@ MIDIFile demo()
 	MIDIParser temp{TEMPO, PPQ};
 	temp.noteCount = 22;
 	temp.firstNoteIndex = 60;
-	temp.rawData = testVector;
-	return temp.getMidiFile(false, 88, 4);
+	return temp.getMidiFile(testVector, false, 4);
 }
 
 int main(int argc, char *argv[])
@@ -138,8 +137,8 @@ int main(int argc, char *argv[])
 
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;
-	MIDIParser parser{tempo, PPQ};
-	MIDIFile midiFile = parser.getMidiFile(midiTable, frames, maxNotes);
+	MIDIParser parser{tempo, PPQ, maxNotes};
+	MIDIFile midiFile = parser.getMidiFile(midiTable, frames);
 
 	// save as MIDI file
 	size_t slashIndex = inputFilepath.find_last_of("/\\");

@@ -1,4 +1,5 @@
 - review makefile
 - write README.md
-- test program that iterates over parameters
+- write test program that iterates over parameters
 - skip CSV creation
+- outsource all CSV logic

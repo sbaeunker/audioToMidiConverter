@@ -8,7 +8,11 @@ using namespace std;
 typedef unsigned char uchar;
 
 const uchar FIRST_NOTE_INDEX = 21;
-const unsigned NOTE_COUNT = 88;      // number of notes playable by a piano
+const unsigned NOTE_COUNT = 88; // number of notes playable by a piano
+
+const uint32_t DEFAULT_TEMPO = 500 * 1000; // microseconds for one quarter note / beat
+const uint16_t DEFAULT_PPQ = 480;          // parts per quarter note
+
 const int NOTE_SWITCH_THRESHOLD = 4; // don't switch on too similar notes ... less midi Messages
 const int MIN_VOLUME = 5;            //don't play too silent notes ... less midi Messages
 
@@ -19,28 +23,31 @@ private:
   uint16_t ppq;
   uchar minVolume;
   uchar noteSwitchThreshold;
+  int maxNoteCount;
   struct comp;
 
   vector<int> getLargest(vector<int> midiRow, vector<uchar> playedNotes, int maxNotes);
+  
+  MIDITrack getMidiTrack(vector<vector<int>> data, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
+  
+  // legacy method to help handle CSV file input
+  vector<vector<int>> getMidiDataFromCsv(const char *filename, char delimiter = ',');
 
 public:
-  unsigned noteCount;   // blame/TODO: only public for demo/testing
-  uchar firstNoteIndex; // blame/TODO: only public for demo/testing
-  vector<vector<int>> rawData;
+  unsigned noteCount;          // blame/TODO: only public for demo/testing
+  uchar firstNoteIndex;        // blame/TODO: only public for demo/testing
 
-  MIDIParser(uint32_t tempo, uint16_t ppq, uchar minVolume, uchar noteSwitchThreshold);
+  MIDIParser(uint32_t tempo, uint16_t ppq, int maxNoteCount, uchar minVolume, uchar noteSwitchThreshold);
+  MIDIParser(uint32_t tempo, uint16_t ppq, int maxNoteCount);
   MIDIParser(uint32_t tempo, uint16_t ppq);
   MIDIParser();
 
-  MIDITrack getMidiTrack(short **midiTable, int frames, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
-  MIDIFile getMidiFile(short **midiTable, int frames, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
+  MIDIFile getMidiFile(short **midiTable, int frames, unsigned char program = 0, unsigned char channel = 0);
 
-  MIDITrack getMidiTrack(bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
-  MIDIFile getMidiFile(bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
+  MIDIFile getMidiFile(vector<vector<int>> midiTable, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 
-  // legacy methods to handle CSV file input
-  void loadRawDataFromCsv(const char *filename, char delimiter = ',');
-  MIDIFile getMidiFile(const char *filename, bool getTempoFromData = false, int maxNoteCount = NOTE_COUNT, unsigned char program = 0, unsigned char channel = 0);
+  // legacy method to handle CSV file input
+  MIDIFile getMidiFileFromCsv(const char *filename, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 };
 
 #endif
