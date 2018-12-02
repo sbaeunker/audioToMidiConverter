@@ -1,10 +1,8 @@
 #include <string>
 #include <vector>
-#include <array>
-#include <sstream>   //istringstream
 #include <iostream>  // cout
-#include <fstream>   // filestream
-#include <algorithm> //partial_sort
+#include <algorithm> // partial_sort
+
 #include "midi-parser.h"
 
 using namespace std;
@@ -111,51 +109,6 @@ MIDITrack MIDIParser::getMidiTrack(vector<vector<int>> data, bool getTempoFromDa
     return track;
 }
 
-// legacy helper method to get MIDI file from csv input
-// inspired by: https://waterprogramming.wordpress.com/2017/08/20/reading-csv-files-in-c/
-vector<vector<int>> MIDIParser::getMidiDataFromCsv(const char *filename, char delimiter)
-{
-    vector<vector<int>> data;
-    ifstream inputFile{filename};
-    int lineIndex = 0;
-
-    while (inputFile)
-    {
-        ++lineIndex;
-        string line;
-        if (!getline(inputFile, line))
-            break;
-        if (line[0] != '#')
-        {
-            istringstream lineStream{line};
-            vector<int> record;
-
-            while (lineStream)
-            {
-                string element;
-                if (!getline(lineStream, element, delimiter))
-                    break;
-                try
-                {
-                    record.push_back(stoi(element));
-                }
-                catch (const invalid_argument e)
-                {
-                    cout << "NaN found in file " << filename << " line " << lineIndex << endl;
-                    e.what();
-                }
-            }
-
-            data.push_back(record);
-        }
-    }
-    if (!inputFile.eof())
-    {
-        cerr << "Could not read file " << filename << "\n";
-    }
-    return data;
-}
-
 MIDIFile MIDIParser::getMidiFile(vector<vector<int>> midiTable, bool getTempoFromData, unsigned char program, unsigned char channel)
 {
     MIDITrack track = getMidiTrack(midiTable, getTempoFromData, program, channel);
@@ -179,12 +132,4 @@ MIDIFile MIDIParser::getMidiFile(short **midiTable, int frames, unsigned char pr
         data.push_back(row);
     }
     return getMidiFile(data, false, program, channel);
-}
-
-// legacy method to get MIDI file from csv input
-MIDIFile MIDIParser::getMidiFileFromCsv(const char *filename, bool getTempoFromData, unsigned char program, unsigned char channel)
-{
-    cout << "getting MIDI file from csv file " << filename << endl;
-    vector<vector<int>> data = getMidiDataFromCsv(filename);
-    return getMidiFile(data, getTempoFromData, program, channel);
 }

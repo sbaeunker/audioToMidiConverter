@@ -27,15 +27,11 @@ private:
   struct comp;
 
   vector<int> getLargest(vector<int> midiRow, vector<uchar> playedNotes, int maxNotes);
-  
   MIDITrack getMidiTrack(vector<vector<int>> data, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
-  
-  // legacy method to help handle CSV file input
-  vector<vector<int>> getMidiDataFromCsv(const char *filename, char delimiter = ',');
 
 public:
-  unsigned noteCount;          // blame/TODO: only public for demo/testing
-  uchar firstNoteIndex;        // blame/TODO: only public for demo/testing
+  unsigned noteCount;   // blame/TODO: only public for demo/testing
+  uchar firstNoteIndex; // blame/TODO: only public for demo/testing
 
   MIDIParser(uint32_t tempo, uint16_t ppq, int maxNoteCount, uchar minVolume, uchar noteSwitchThreshold);
   MIDIParser(uint32_t tempo, uint16_t ppq, int maxNoteCount);
@@ -43,11 +39,7 @@ public:
   MIDIParser();
 
   MIDIFile getMidiFile(short **midiTable, int frames, unsigned char program = 0, unsigned char channel = 0);
-
   MIDIFile getMidiFile(vector<vector<int>> midiTable, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
-
-  // legacy method to handle CSV file input
-  MIDIFile getMidiFileFromCsv(const char *filename, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 };
 
 #endif
