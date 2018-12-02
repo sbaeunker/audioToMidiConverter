@@ -7,8 +7,6 @@
 #include <algorithm> //partial_sort
 #include "midi-parser.h"
 
-#define NO_KEYS 88
-
 using namespace std;
 
 const uint32_t DEFAULT_TEMPO = 500 * 1000; // microseconds for one quarter note / beat
@@ -22,16 +20,41 @@ MIDIParser::MIDIParser() : MIDIParser(DEFAULT_TEMPO, DEFAULT_PPQ)
 {
 }
 
-struct MIDIParser::Comp
+struct MIDIParser::comp
 {
-    Comp(const vector<int> &v) : _v(v) {}
+    comp(const vector<int> &v) : _v(v) {}
     bool operator()(int a, int b) { return _v[a] > _v[b]; }
     const vector<int> &_v;
 };
 
-vector<int> MIDIParser::getLargest(short *midiRow, vector<int> playedNotes, int maxNotes)
+vector<int> MIDIParser::getLargest(vector<int> midiRow, vector<uchar> playedNotes, int maxNotes)
 {
-    vector<int> v(midiRow, midiRow + NO_KEYS);
+    size_t length = midiRow.size() < playedNotes.size() ? midiRow.size() : playedNotes.size();
+
+    cout << length << endl;
+
+    vector<int> v(length);
+
+    cout << length << endl;
+    for (unsigned i = 0; i < length; ++i)
+    {
+        v[i] = abs(midiRow[i] - playedNotes[i]); //absolute differences
+    }
+    cout << length << endl;
+
+    vector<int> vx(length);
+    for (unsigned i = 0; i < length; ++i)
+    {
+        vx[i] = i; // fill with indexes
+    }
+
+    partial_sort(vx.begin(), vx.begin() + maxNotes, vx.end(), comp(v)); // sort vx after largest values in v
+    return vx;                                                          // vx[0..maxNotes] contains index of keys to play
+}
+
+vector<int> MIDIParser::getLargest(short *midiRow, vector<uchar> playedNotes, int maxNotes)
+{
+    vector<int> v(midiRow, midiRow + NOTE_COUNT);
     for (int i = 0; i < v.size(); ++i)
     {
         v[i] = abs(v[i] - playedNotes[i]); //absolute differences
@@ -40,41 +63,45 @@ vector<int> MIDIParser::getLargest(short *midiRow, vector<int> playedNotes, int 
     vx.resize(v.size());
     for (int i = 0; i < v.size(); ++i)
         vx[i] = i;                                               //fill with indexes
-    partial_sort(vx.begin(), vx.begin() + 5, vx.end(), Comp(v)); //sort vx after largest values in v
+    partial_sort(vx.begin(), vx.begin() + 5, vx.end(), comp(v)); //sort vx after largest values in v
     return vx;                                                   //vx[0..maxNotes] contains index of keys to play
 }
 
 MIDITrack MIDIParser::getMidiTrack(short **midiTable, int frames, int maxNotes, int noteSwitchThreshold, int minVolume, unsigned char program, unsigned char channel)
 {
-    cout << "PPQ: " << to_string(ppq) << " microS pro Q: " << to_string(tempo) << endl;
     MIDITrack track{tempo};
     track.programChange(channel, program);
 
-    vector<int> noteStatus;
+    vector<uchar> noteStatus;
     noteStatus.assign(noteCount, 0);
 
     vector<int> largestDiffs; //stores the most important notes to play
     largestDiffs.assign(maxNotes, 0);
 
-    for (int frame = 0; frame < frames; frame++)
+    for (unsigned frame = 0; frame < frames; ++frame)
     {
-        largestDiffs = getLargest(midiTable[frame], noteStatus, maxNotes);
-        // cout << endl;
-        for (int i = 0; i < maxNotes; i++)
-        { //only play most differing keys
-            // cout << to_string(largestDiffs[i]) << " ";
-            if (abs(midiTable[frame][largestDiffs[i]] - noteStatus[largestDiffs[i]]) > noteSwitchThreshold)
-            {                                                             //only play those when they meet the threshold
-                track.noteOff(channel, firstNoteIndex + largestDiffs[i]); //first turn note off
-                noteStatus[largestDiffs[i]] = 0;
-                if (midiTable[frame][largestDiffs[i]] > minVolume)
-                { //only play loud keys
-                    track.noteOn(channel, firstNoteIndex + largestDiffs[i], midiTable[frame][largestDiffs[i]]);
-                    noteStatus[largestDiffs[i]] = midiTable[frame][largestDiffs[i]];
+        short *row = midiTable[frame];
+        vector<int> row2(row, row + noteCount);
+        cout << "test " << row2.size() << endl;
+        largestDiffs = getLargest(row, noteStatus, maxNotes);
+        for (unsigned i = 0; i < maxNotes; ++i) //only play most differing keys
+        {
+            int noteIndex = largestDiffs[i];
+            // int noteIndex = i;
+            int volume = row[noteIndex];
+            int lastVolume = noteStatus[noteIndex];
+            if (abs(volume - lastVolume) >= noteSwitchThreshold)
+            {
+                track.noteOff(channel, firstNoteIndex + noteIndex); //first turn note off
+                noteStatus[noteIndex] = 0;
+                if (volume >= minVolume)
+                {
+                    track.noteOn(channel, firstNoteIndex + noteIndex, volume);
+                    noteStatus[noteIndex] = volume;
                 }
             }
         }
-        track.addDelay(ppq);
+        track.addDelay(ppq); // blame
     }
     return track;
 }
@@ -90,7 +117,7 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
     int noteSwitchThreshold = 5; // blame
     int minVolume = 16;          // blame
 
-    vector<int> noteStatus;
+    vector<uchar> noteStatus;
     noteStatus.assign(noteCount, 0);
 
     for (unsigned i = 0; i < rawData.size(); ++i)
@@ -103,43 +130,25 @@ MIDITrack MIDIParser::getMidiTrack(bool getTempoFromData, unsigned char program,
         }
         else
         {
-            // step 1: add delay / time offset to previous step
             uint32_t delay = rowData[0];               // delay in us
             unsigned ppqDelay = ppq * delay / (tempo); // transform delay in us to delay in PPQ
             track.addDelay(ppqDelay);
 
-            // step 2: switch all previously switched on notes off
             for (unsigned note = 0; note < rowData.size() - 1; ++note)
             {
                 uchar volume = rowData[note + 1] & 0xFF;
-                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold || volume < minVolume) // noteOff, if it was activated in the previous step!
+                // noteOff, if it will change (diff to previous value > threshold) or volume too low
+                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold || volume < minVolume)
                 {
                     track.noteOff(channel, firstNoteIndex + note);
                     noteStatus[note] = 0;
+
+                    if (volume >= minVolume) // noteOn, if volume > minVolume
+                    {
+                        track.noteOn(channel, firstNoteIndex + note, volume);
+                        noteStatus[note] = volume;
+                    }
                 }
-
-                // if (note % 4 == 0)
-                // {
-                //     track.addDelay(ppqDelay / (4 * 11)); //spread playing across multiple ticks -> more delay messages
-                // }
-            }
-
-            // step 3: switch current notes on
-            for (unsigned note = 0; note < rowData.size() - 1; ++note)
-            {
-                uchar volume = rowData[note + 1] & 0xFF;
-
-                // play notes when: Diff greater threshold and greater minVolume
-                if (abs(noteStatus[note] - volume) >= noteSwitchThreshold && volume >= minVolume)
-                {
-                    track.noteOn(channel, firstNoteIndex + note, volume);
-                    noteStatus[note] = volume;
-                }
-
-                // if (note % 4 == 0)
-                // {
-                //     track.addDelay(ppqDelay / (4 * 11)); //spread playing across multiple ticks -> more delay messages
-                // }
             }
         }
     }

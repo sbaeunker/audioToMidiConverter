@@ -1,0 +1,3 @@
+- review makefile
+- write README.md
+- test program that iterates over parameters
