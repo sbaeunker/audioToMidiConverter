@@ -14,6 +14,7 @@ class MIDIParser
 private:
   uint32_t tempo;
   uint16_t ppq;
+  struct Comp;
 
 public:
   unsigned noteCount;
@@ -26,8 +27,8 @@ public:
   //void storeMax();
 
   void loadRawDataFromCsv(const char *filename, char delimiter = ',');
-  
-  MIDITrack getMidiTrack(short ** midiTable,int frames, unsigned char program = 0, unsigned char channel = 0);
+  vector<int> getLargest(short * midiRow, vector<int> playedNotes,int maxNotes);
+  MIDITrack getMidiTrack(short ** midiTable,int frames, int noteSwitchThreshold, int minVelocity, int maxNotes,unsigned char program = 0, unsigned char channel = 0);
   MIDITrack getMidiTrack(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 
   MIDIFile getMidiFile(bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);

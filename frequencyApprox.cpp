@@ -23,7 +23,8 @@ short ** FrequencyApprox::toMIDI(const char *filename, int windowSize, int windo
 	short ** velocities = velocityTable(mfft, nrows, ncolumns, sampleRate);
 	free(mfft);
 	midiTempo = (int) 1000000.0 * ( (double)windowDistance/(double)sampleRate );
-	if(writeCSV){ //write to CSV
+	//write to CSV
+	if(writeCSV){ 
 		std::cout << "write to csv" << std::endl;
 		std::ofstream csv;
 		std::string file = std::string(filename);

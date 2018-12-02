@@ -4,7 +4,7 @@
 #include <sstream>  //istringstream
 #include <iostream> // cout
 #include <fstream>  // filestream
-#include <list>
+#include <algorithm> //partial_sort
 #include "midi-parser.h"
 
 #define NO_KEYS 88
@@ -19,6 +19,12 @@ MIDIParser::MIDIParser(uint32_t tempo, uint16_t ppq) : tempo(tempo), ppq(ppq), n
 MIDIParser::MIDIParser() : MIDIParser(DEFAULT_TEMPO, DEFAULT_PPQ)
 {
 }
+
+struct MIDIParser::Comp{
+    Comp( const vector<int>& v ) : _v(v) {}
+    bool operator ()(int a, int b) { return _v[a] > _v[b]; }
+    const vector<int>& _v;
+	};
 
 // in Anlehnung an: https://waterprogramming.wordpress.com/2017/08/20/reading-csv-files-in-c/
 void MIDIParser::loadRawDataFromCsv(const char *filename, char delimiter)
@@ -63,23 +69,46 @@ void MIDIParser::loadRawDataFromCsv(const char *filename, char delimiter)
         cerr << "Could not read file " << filename << "\n";
     }
 }
-MIDITrack MIDIParser::getMidiTrack(short ** midiTable,int frames, unsigned char program, unsigned char channel){
+
+vector<int> MIDIParser::getLargest(short * midiRow, vector<int> playedNotes,int maxNotes){
+	vector<int> v(midiRow,midiRow+NO_KEYS);
+	for( int i= 0; i<v.size(); ++i ){
+		v[i] = abs(v[i] -playedNotes[i]); //absolute differences
+	}
+	vector<int> vx;
+	vx.resize(v.size());
+	for( int i= 0; i<v.size(); ++i ) vx[i]= i; //fill with indexes
+	std::partial_sort( vx.begin(), vx.begin()+5, vx.end(), Comp(v) ); //sort vx after largest values in v
+	return vx; //vx[0..maxNotes] contains index of keys to play
+}
+
+
+
+
+
+MIDITrack MIDIParser::getMidiTrack(short ** midiTable,int frames,int maxNotes, int noteSwitchThreshold, int minVelocity, unsigned char program, unsigned char channel){
 	std::cout << "PPQ: " << std::to_string(ppq) << " microS pro Q: " << std::to_string(tempo) << endl;
 	MIDITrack track{tempo};
 	track.programChange(channel, program);
-	int noteSwitchThreshold = 4; // don't switch on too similar notes ... less midi Messages
-	int minVelocity = 3; //don't play too silent notes ... less midi Messages
+	
     vector<int> noteStatus;
     noteStatus.assign(noteCount, 0);
     uchar velocity;
+    
+    vector<int> largestDiffs; //stores the most important notes to play
+	largestDiffs.assign(maxNotes, 0); 
+	
     for(int frame = 0; frame < frames; frame++){
-		for(int note = 0; note<NO_KEYS; note++){			
-			if (abs(noteStatus[note] - midiTable[frame][note])>noteSwitchThreshold){
-				track.noteOff(channel, firstNoteIndex + note);
-				noteStatus[note] = 0;
-				if(midiTable[frame][note]>minVelocity){
-					track.noteOn(channel, firstNoteIndex + note, midiTable[frame][note]);
-					noteStatus[note] = midiTable[frame][note];
+		largestDiffs = getLargest(midiTable[frame], noteStatus ,maxNotes);
+		std::cout << std::endl;	
+		for(int i = 0; i< maxNotes; i++){//only play most differing keys
+			std::cout << std::to_string(largestDiffs[i]) << " ";
+			if (abs(midiTable[frame][largestDiffs[i]]- noteStatus[largestDiffs[i]]) > noteSwitchThreshold){//only play those when they meet the threshold
+				track.noteOff(channel, firstNoteIndex + largestDiffs[i]); //first turn note off
+				noteStatus[largestDiffs[i]] = 0;
+				if(midiTable[frame][largestDiffs[i]]>minVelocity){ //only play loud keys
+					track.noteOn(channel, firstNoteIndex + largestDiffs[i], midiTable[frame][largestDiffs[i]]);
+					noteStatus[largestDiffs[i]] = midiTable[frame][largestDiffs[i]];
 				}
 			}
 		}
