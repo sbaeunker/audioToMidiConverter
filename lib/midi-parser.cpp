@@ -33,16 +33,17 @@ struct MIDIParser::comp
     const vector<int> &_v;
 };
 
-vector<int> MIDIParser::getLargest(vector<int> nextVolumes, vector<uchar> lastVolumes, int noteCount)
+vector<int> MIDIParser::getLargest(vector<int> rowData, vector<uchar> noteStatus, int noteCount)
 {
-    size_t length = nextVolumes.size() < lastVolumes.size() ? nextVolumes.size() : lastVolumes.size();
+    // NOTE: rowData contains tempo information at index 0 -> note information start at index 1!
+    size_t length = rowData.size() - 1 < noteStatus.size() ? rowData.size() - 1 : noteStatus.size();
     if (noteCount > length)
         noteCount = length;
 
     vector<int> diffs(length); // list of absolute differences between to-be and as-is volume
     for (unsigned i = 0; i < length; ++i)
     {
-        diffs[i] = abs(nextVolumes[i] - lastVolumes[i]); //absolute differences
+        diffs[i] = abs(rowData[i + 1] - noteStatus[i]); //absolute differences
     }
 
     vector<int> temp(length); // simple array of 1,2,3,4,...,noteCount

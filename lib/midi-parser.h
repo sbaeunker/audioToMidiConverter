@@ -26,7 +26,7 @@ private:
   int maxNoteCount;
   struct comp;
 
-  vector<int> getLargest(vector<int> midiRow, vector<uchar> playedNotes, int maxNotes);
+  vector<int> getLargest(vector<int> rowData, vector<uchar> noteStatus, int maxNotes);
   MIDITrack getMidiTrack(vector<vector<int>> data, bool getTempoFromData = false, unsigned char program = 0, unsigned char channel = 0);
 
 public:
