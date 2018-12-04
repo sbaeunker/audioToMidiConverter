@@ -1,5 +1,2 @@
 - review makefile
-- write README.md
 - write test program that iterates over parameters
-- License?
-- use references? performance improvement? (check tic toc)
