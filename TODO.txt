@@ -1,7 +1,5 @@
 - review makefile
 - write README.md
 - write test program that iterates over parameters
-- skip CSV creation
-- outsource all CSV logic
 - License?
 - use references? performance improvement? (check tic toc)

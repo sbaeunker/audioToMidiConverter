@@ -12,7 +12,7 @@ const int WINDOW_DISTANCE = 200;
 const int ZERO_PADDING = 0;
 const int MAX_NOTES = 88;		   // limit midi messages per time unit to enable playing it with midi hardware interface
 const uint32_t TEMPO = 300 * 1000; // microseconds for one quarter note / beat (default = 500 ms = 500 * 1000 us)
-const uint16_t PPQ = 460;		   // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
+const uint16_t PPQ = 10;		   // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
 
 using namespace std;
 typedef unsigned char uchar;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	short **midiTable;
 	FrequencyApprox approx{};
 	int frames, midiTempo;
-	midiTable = approx.toMIDI(inputFilepath.c_str(), windowSize, windowDistance, zeroPadding, true, midiTempo, frames);
+	midiTable = approx.toMIDI(inputFilepath.c_str(), windowSize, windowDistance, zeroPadding, midiTempo, frames);
 
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;

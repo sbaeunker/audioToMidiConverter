@@ -13,6 +13,6 @@ class FrequencyApprox
 		
 	public:	
 		FrequencyApprox();
-		short ** toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, bool writeCSV , int &midiTempo, int &frames);
+		short ** toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, int &midiTempo, int &frames);
 		
 };

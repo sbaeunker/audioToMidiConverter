@@ -10,7 +10,7 @@
 FrequencyApprox::FrequencyApprox(){
 	
 }
-short ** FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, bool writeCSV, int &midiTempo, int &nrows)
+short ** FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, int &midiTempo, int &nrows)
 {	
 	float * samples; //sample Array to be filled
 	int size;  //sampleSize
@@ -23,21 +23,6 @@ short ** FrequencyApprox::toMIDI(const char *filename, int windowSize, int windo
 	short ** velocities = velocityTable(mfft, nrows, ncolumns, sampleRate);
 	free(mfft);
 	midiTempo = (int) 1000000.0 * ( (double)windowDistance/(double)sampleRate );
-	//write to CSV
-	if(writeCSV){ 
-		std::cout << "write to csv" << std::endl;
-		std::ofstream csv;
-		std::string file = std::string(filename);
-		csv.open (file.replace(file.find(".wav"),4,".csv"));
-		for(int i=0; i < nrows; i++){
-			csv << std::to_string(midiTempo) << ",";	
-			for(int j=0; j< NO_KEYS; j++){
-				csv << std::to_string(velocities[i][j]) << ",";
-			}
-			csv << std::endl;
-		}
-		csv.close();
-	}
 	return velocities;
 }
 
@@ -158,6 +143,3 @@ float * FrequencyApprox::loadAudiofile(const char *filename, int &outSize, int &
 	
 	return samples;
 }
-
-
-
