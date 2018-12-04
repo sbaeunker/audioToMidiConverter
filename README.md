@@ -1,6 +1,6 @@
 # Audio to MIDI converter
 
-This project is meant to transform audio files (currently only .wav's are supported) to MIDI files.
+This project is meant to transform audio files to MIDI files.
 
 ### Building
 
@@ -10,7 +10,11 @@ Call `make`.
 
 ### Running
 
-Pass audio file to convert as first parameter. E. g. `./main.exe .\audioFiles\SpracheTest1.wav`
+Pass path of audio file to convert as first parameter (required).
+
+Currently supported formats are: WAV, AIFF
+
+Example call: `./main.exe .\audioFiles\SpracheTest1.wav`
 
 Other (optional) parameters are:
 
