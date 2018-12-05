@@ -76,7 +76,7 @@ MIDITrack MIDIParser::getMidiTrack(vector<vector<int>> data, bool getTempoFromDa
 
         if (rowData.size() != noteCount + 1)
         {
-            cout << "Invalid CSV row detected. Rows must contain 1 + " << noteCount << " entries (not " << rowData.size() << ")!" << endl;
+            cerr << "Invalid CSV row detected. Rows must contain 1 + " << noteCount << " entries (not " << rowData.size() << ")!" << endl;
         }
         else
         {

@@ -1,6 +1,5 @@
 
 #include <vector>
-#include <cstdint>
 
 #ifndef __MIDI_H__
 #define __MIDI_H__

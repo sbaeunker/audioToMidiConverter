@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <string>
 
 #include "midi.h"
@@ -6,7 +7,7 @@
 using namespace std;
 
 const uint32_t DEFAULT_TEMPO = 500 * 1000; // microseconds for one quarter note / beat
-const uint16_t DEFAULT_PPQ = 480;   // parts per quarter note
+const uint16_t DEFAULT_PPQ = 480;          // parts per quarter note
 
 /*********** MIDI BASE *******************************/
 
@@ -167,7 +168,14 @@ void MIDIFile::saveAs(const char *filePath)
     ofstream outfile;
     outfile.open(filePath, ios::out | ios::binary);
 
-    outfile.write((char *)&front(), size());
-
+    if (!outfile.is_open())
+    {
+        cerr << "Saving MIDI file failed. Could not open " << filePath << ". Probably a directory does not exist!" << endl;
+    }
+    else
+    {
+        outfile.write((char *)&front(), size());
+    }
+    
     outfile.close();
 }

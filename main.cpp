@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 		cerr << "At least one input argument is expected. Please provide a file path..." << endl;
 		return -1;
 	}
-	if (argc > 6)
+	if (argc > 8)
 	{
 		cerr << "Too many input arguments (" << argc << ")" << endl;
 		return -1;
@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
 	int windowDistance = WINDOW_DISTANCE;
 	int zeroPadding = ZERO_PADDING;
 	int maxNotes = MAX_NOTES;
+	uchar minVolume = MIN_VOLUME;
+	uchar noteSwitchThreshold = NOTE_SWITCH_THRESHOLD;
 
 	// read args
 	for (int i = 0; i < argc; ++i)
@@ -124,10 +126,17 @@ int main(int argc, char *argv[])
 		case 5:
 			maxNotes = atoi(value);
 			break;
+		case 6:
+			minVolume = atoi(value);
+			break;
+		case 7:
+			noteSwitchThreshold = atoi(value);
+			break;
 		}
 	}
-	cout << "generating: " << inputFilepath << ", windowSize " << to_string(windowSize) << ", windowDistance " << to_string(windowDistance);
-	cout << ", zeroPadding " << to_string(zeroPadding) << ", maxNotes " << to_string(maxNotes) << endl;
+	cout << "generating: " << inputFilepath << "\nwindowSize " << to_string(windowSize) << ", windowDistance " << to_string(windowDistance);
+	cout << ", zeroPadding " << to_string(zeroPadding) << ", maxNotes " << to_string(maxNotes);
+	cout << ", minVolume " << to_string(minVolume) << ", noteSwitchThreshold " << to_string(noteSwitchThreshold) << endl;
 
 	// read audio file, perform fast-fourier-transformation (FFT) and aggregate results to MIDI compatible format
 	short **midiTable;
@@ -137,7 +146,7 @@ int main(int argc, char *argv[])
 
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;
-	MIDIParser parser{tempo, PPQ, maxNotes};
+	MIDIParser parser{tempo, PPQ, maxNotes, minVolume, noteSwitchThreshold};
 	MIDIFile midiFile = parser.getMidiFile(midiTable, frames);
 
 	// save as MIDI file

@@ -22,6 +22,8 @@ Other (optional) parameters are:
 * windowDistance (used for fast-fourier transformation)
 * zeroPadding (not used (yet)...)
 * maxNotes (limit of number of notes that are played in parallel -> required for some hardware)
+* minVolume (don't play too silent notes to generate less MIDI messages)
+* noteSwitchThreshold (don't switch on too similar notes to generate less MIDI messages)
 
 ### Links
 
