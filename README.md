@@ -25,6 +25,14 @@ Other (optional) parameters are:
 * minVolume (don't play too silent notes to generate less MIDI messages)
 * noteSwitchThreshold (don't switch on too similar notes to generate less MIDI messages)
 
+### Testing
+
+The `test.cpp` contains a test script that basically tries out several parameter constellations.
+
+As for the `main.exe` the path of the target audio file must be passed as first parameter.
+
+Example call: `./test.exe .\audioFiles\SpracheTest1.wav`
+
 ### Links
 
 * [MIDI](https://en.wikipedia.org/wiki/MIDI)

@@ -11,13 +11,8 @@ FrequencyApprox::FrequencyApprox()
 {
 }
 
-short **FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, int &midiTempo, int &nrows)
+short **FrequencyApprox::toMIDI(float *samples, int size, int sampleRate, int windowSize, int windowDistance, int zeroPadding, int &midiTempo, int &nrows)
 {
-	float *samples; //sample Array to be filled
-	int size;		//sampleSize
-	int sampleRate;
-	samples = loadAudiofile(filename, size, sampleRate); //fill Samples
-	//std::cout << "No. of samples read: "<<std::to_string(size) << std::endl;
 	int ncolumns;
 	float **mfft = movingFFT(samples, size, windowSize, windowDistance, zeroPadding, nrows, ncolumns); //calculate fft for windows
 	free(samples);
@@ -25,6 +20,16 @@ short **FrequencyApprox::toMIDI(const char *filename, int windowSize, int window
 	free(mfft);
 	midiTempo = (int)1000000.0 * ((double)windowDistance / (double)sampleRate);
 	return velocities;
+}
+
+short **FrequencyApprox::toMIDI(const char *filename, int windowSize, int windowDistance, int zeroPadding, int &midiTempo, int &nrows)
+{
+	float *samples; //sample Array to be filled
+	int size;		//sampleSize
+	int sampleRate;
+	samples = loadAudiofile(filename, size, sampleRate); //fill Samples
+
+	return toMIDI(samples, size, sampleRate, windowSize, windowDistance, zeroPadding, midiTempo, nrows);
 }
 
 short **FrequencyApprox::velocityTable(float **mfft, int nrows, int ncolumns, int sampleRate)

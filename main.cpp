@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	uchar noteSwitchThreshold = NOTE_SWITCH_THRESHOLD;
 
 	// read args
-	for (int i = 0; i < argc; ++i)
+	for (int i = 1; i < argc; ++i)
 	{
 		char *value = argv[i];
 		switch (i)
