@@ -27,7 +27,13 @@ int main(int argc, char *argv[])
     size_t dotIndex = inputFilepath.find_last_of(".");
     // get file name without parent directories and file extension
     string inputFilename = inputFilepath.substr(slashIndex + 1, dotIndex - slashIndex - 1);
+    
+    FrequencyApprox approx{};
+    int sampleSize, sampleRate;
+    // initially read audio file
+    float *samples = approx.loadAudiofile(inputFilepath.c_str(), sampleSize, sampleRate);
 
+    
     vector<int> windowSizesList = {500, 1000};
     vector<int> windowDistancesList = {200, 500};
     vector<int> zeroPaddingsList = {0};
@@ -47,11 +53,7 @@ int main(int argc, char *argv[])
                     {
                         for (uchar noteSwitchThreshold : noteSwitchThresholdsList)
                         {
-                            FrequencyApprox approx{};
-                            int sampleSize, sampleRate;
-                            // initially read audio file
-                            float *samples = approx.loadAudiofile(inputFilepath.c_str(), sampleSize, sampleRate);
-
+                            
                             // perform fast-fourier-transformation (FFT) and aggregate results to MIDI compatible format
                             int frames, midiTempo;
                             short **midiTable = approx.toMIDI(samples, sampleSize, sampleRate, windowSize, windowDistance, zeroPadding, midiTempo, frames);
@@ -68,6 +70,7 @@ int main(int argc, char *argv[])
                             midiFile.saveAs(outputFilename.c_str());
 
                             cout << "file created: " << outputFilename << endl;
+                            free(midiTable);
                         }
                     }
                 }
