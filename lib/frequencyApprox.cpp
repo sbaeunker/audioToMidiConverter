@@ -84,8 +84,8 @@ float *FrequencyApprox::frequencyToKeys(float *spectrum, int size, int sampleRat
 	//define frequencyBins for each key through upper and lower limits
 	for (int i = 0; i < NO_KEYS; i++)
 	{
-		fgu[i] = 440.0 * pow(2.0, ((i - 48.5) / 12.0)); // obere grenzfrequenzen
-		fgo[i] = 440.0 * pow(2.0, ((i - 47.5) / 12.0)); // untere grenzfrequenzen
+		fgu[i] = 440.0 * pow(2.0, ((i - 48.5) / 12.0)); // untere grenzfrequenzen
+		fgo[i] = 440.0 * pow(2.0, ((i - 47.5) / 12.0)); // obere grenzfrequenzen
 	}
 	for (int i = 0; i < NO_KEYS; i++)
 	{
