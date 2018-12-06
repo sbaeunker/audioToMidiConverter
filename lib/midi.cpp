@@ -64,6 +64,12 @@ void MIDITrack::addEvent(uchar status, uchar data1, uchar data2)
 
 void MIDITrack::addTimeOffset(unsigned t)
 {
+    // currently 42 bit offsets can be processes
+    // this should be more than enough -> in worst case (tempo = 1 us, ppq = 0x7FFF) this represents a break of 134 seconds
+    if (t >> 35)
+        push_back(0x80 | ((t >> 35) & 0x7F));
+    if (t >> 28)
+        push_back(0x80 | ((t >> 28) & 0x7F));
     if (t >> 21)
         push_back(0x80 | ((t >> 21) & 0x7F));
     if (t >> 14)
