@@ -26,7 +26,7 @@ class MIDIBase : public vector<uchar>
 class MIDITrack : public MIDIBase
 {
   private:
-    unsigned delay;
+    unsigned long long delay;
     uint32_t tempo;
 
     template <typename... Args>
@@ -35,7 +35,7 @@ class MIDITrack : public MIDIBase
     void addEvent(uchar status, uchar data1);
     void addEvent(uchar status, uchar data1, uchar data2);
 
-    void addTimeOffset(unsigned t);
+    void addTimeOffset(unsigned long long t);
 
     void flush();
 
@@ -44,7 +44,7 @@ class MIDITrack : public MIDIBase
     MIDITrack();
 
     // Methods for indicating how much time elapses:
-    void addDelay(unsigned amount);
+    void addDelay(unsigned long long amount);
 
     void noteOff(uchar channel, uchar note, uchar velocity = 0);
     void noteOn(uchar channel, uchar note, uchar velocity);

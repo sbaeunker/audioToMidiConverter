@@ -62,7 +62,7 @@ void MIDITrack::addEvent(uchar status, uchar data1, uchar data2)
     addEventRaw(status, data1 & 0x7F, data2 & 0x7F);
 }
 
-void MIDITrack::addTimeOffset(unsigned t)
+void MIDITrack::addTimeOffset(unsigned long long t)
 {
     // currently 42 bit offsets can be processes
     // this should be more than enough -> in worst case (tempo = 1 us, ppq = 0x7FFF) this represents a break of 134 seconds
@@ -88,7 +88,7 @@ void MIDITrack::flush()
 /** public methods **/
 
 // Methods for indicating how much time elapses:
-void MIDITrack::addDelay(unsigned amount)
+void MIDITrack::addDelay(unsigned long long amount)
 {
     delay += amount;
 }
