@@ -114,7 +114,7 @@ MIDIFile MIDIParser::getMidiFile(vector<vector<int>> midiTable, bool getTempoFro
 {
     MIDITrack track = getMidiTrack(midiTable, getTempoFromData, program, channel);
 
-    MIDIFile file{ppq};
+    MIDIFile file{ppq, 0}; // because we only add 1(!) track, MIDI file format 0 is ok
     file.addTrack(track);
     file.generate();
 

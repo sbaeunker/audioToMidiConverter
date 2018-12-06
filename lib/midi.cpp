@@ -176,6 +176,6 @@ void MIDIFile::saveAs(const char *filePath)
     {
         outfile.write((char *)&front(), size());
     }
-    
+
     outfile.close();
 }
