@@ -16,6 +16,7 @@ const uint16_t DEFAULT_PPQ = 480;          // parts per quarter note
 const int NOTE_SWITCH_THRESHOLD = 4; // don't switch on too similar notes ... less midi Messages
 const int MIN_VOLUME = 5;            //don't play too silent notes ... less midi Messages
 
+/* Helper class to parse aggregated FFT results of an audio file to a MIDI file */
 class MIDIParser
 {
 private:

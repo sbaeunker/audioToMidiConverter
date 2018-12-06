@@ -23,6 +23,7 @@ class MIDIBase : public vector<uchar>
     void pushBackBytes();
 };
 
+/* Represents a single MIDI Track */
 class MIDITrack : public MIDIBase
 {
   private:
@@ -56,8 +57,11 @@ class MIDITrack : public MIDIBase
 
     template <typename... Args>
     void addMetaEvent(uchar metatype, uchar length, Args... args);
+
+    // TODO: implement SysEx endpoints?
 };
 
+/* Represents a MIDI file */
 class MIDIFile : public MIDIBase
 {
   private:
