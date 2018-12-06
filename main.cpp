@@ -143,11 +143,13 @@ int main(int argc, char *argv[])
 	FrequencyApprox approx{};
 	int frames, midiTempo;
 	midiTable = approx.toMIDI(inputFilepath.c_str(), windowSize, windowDistance, zeroPadding, midiTempo, frames);
+	cout << "read audio file, performed FFT and aggregated MIDI data" << endl;
 
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;
 	MIDIParser parser{tempo, PPQ, maxNotes, minVolume, noteSwitchThreshold};
 	MIDIFile midiFile = parser.getMidiFile(midiTable, frames);
+	cout << "generated MIDI file" << endl;
 
 	// save as MIDI file
 	size_t slashIndex = inputFilepath.find_last_of("/\\");
@@ -156,4 +158,5 @@ int main(int argc, char *argv[])
 	string inputFilename = inputFilepath.substr(slashIndex + 1, dotIndex - slashIndex - 1);
 	string outputFilename = "./output/" + inputFilename + ".mid";
 	midiFile.saveAs(outputFilename.c_str());
+	cout << "saved MIDI file" << endl;
 }

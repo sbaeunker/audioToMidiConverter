@@ -129,7 +129,7 @@ MIDIFile MIDIParser::getMidiFile(short **midiTable, int frames, unsigned char pr
     {
         vector<int> row(midiTable[frame], midiTable[frame] + noteCount);
         // insert delay at the beginning
-        row.insert(row.begin(), tempo); // blame/TODO: check delay parameter
+        row.insert(row.begin(), tempo);
         data.push_back(row);
     }
     return getMidiFile(data, false, program, channel);
