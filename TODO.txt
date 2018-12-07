@@ -1,0 +1,4 @@
+- review makefile
+- improve test program that iterates over parameters
+    only read audio file once
+    parse back to wav + cross correlation?
