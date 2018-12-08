@@ -156,7 +156,11 @@ int main(int argc, char *argv[])
 	size_t dotIndex = inputFilepath.find_last_of(".");
 	// get file name without parent directories and file extension
 	string inputFilename = inputFilepath.substr(slashIndex + 1, dotIndex - slashIndex - 1);
-	string outputFilename = "./output/" + inputFilename + ".mid";
+	// add parameter information to file names
+	string filenameSuffix1 = "-" + to_string(windowSize) + "-" + to_string(windowDistance) + "-" + to_string(zeroPadding);
+	string filenameSuffix2 = "-" + to_string(maxNotes) + "-" + to_string(minVolume) + "-" + to_string(noteSwitchThreshold);
+	
+	string outputFilename = "./output/" + inputFilename + filenameSuffix1 + filenameSuffix2 + ".mid";
 	midiFile.saveAs(outputFilename.c_str());
 	cout << "saved MIDI file" << endl;
 }

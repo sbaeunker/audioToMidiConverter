@@ -1,4 +1,2 @@
-- review makefile
-- improve test program that iterates over parameters
-    only read audio file once
-    parse back to wav + cross correlation?
+
+- create test script to iterate over parameters (possibly as batch script?)
