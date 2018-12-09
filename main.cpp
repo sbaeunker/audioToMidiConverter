@@ -13,6 +13,7 @@ const int ZERO_PADDING = 0;
 const int MAX_NOTES = 88;		   // limit midi messages per time unit to enable playing it with midi hardware interface
 const uint32_t TEMPO = 300 * 1000; // microseconds for one quarter note / beat (default = 500 ms = 500 * 1000 us)
 const uint16_t PPQ = 10;		   // parts per quarter note -> with default settings (quarter note = 500 ms) PPQ *2(!) = parts per second
+const uchar PROGRAM = 0x0; // MIDI instrument (choose 0 for acoustic piano, see https://de.wikipedia.org/wiki/General_MIDI)
 
 using namespace std;
 typedef unsigned char uchar;
@@ -77,7 +78,7 @@ MIDIFile demo()
 	MIDIParser temp{TEMPO, PPQ};
 	temp.noteCount = 22;
 	temp.firstNoteIndex = 60;
-	return temp.getMidiFile(testVector, false, 4);
+	return temp.getMidiFile(testVector, false, PROGRAM);
 }
 
 int main(int argc, char *argv[])
@@ -148,7 +149,7 @@ int main(int argc, char *argv[])
 	// parse data to MIDI object
 	uint32_t tempo = midiTempo;
 	MIDIParser parser{tempo, PPQ, maxNotes, minVolume, noteSwitchThreshold};
-	MIDIFile midiFile = parser.getMidiFile(midiTable, frames);
+	MIDIFile midiFile = parser.getMidiFile(midiTable, frames, PROGRAM);
 	cout << "generated MIDI file" << endl;
 
 	// save as MIDI file
