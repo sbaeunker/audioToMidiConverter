@@ -10,16 +10,10 @@ LIBS=lib/midi.cpp lib/midi-parser.cpp lib/kissfft/kiss_fftr.c lib/kissfft/kiss_f
 SRCS=main.cpp $(LIBS)
 OBJS=$(subst .cc,.o,$(SRCS))
 
-SRCS2=test.cpp $(LIBS)
-OBJS2=$(subst .cc,.o,$(SRCS2))
-
-all: main test
+all: main
 
 main: $(OBJS)
 	$(CXX) $(LDFLAGS) -o main $(OBJS) $(LDLIBS) 
-	
-test: $(OBJS2)
-	$(CXX) $(LDFLAGS) -o test $(OBJS2) $(LDLIBS) 
 
 main.o: main.cpp lib/midi.h lib/midi-parser.h
 

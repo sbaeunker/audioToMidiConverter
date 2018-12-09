@@ -123,12 +123,17 @@ float **FrequencyApprox::movingFFT(float *samples, int sampleSize, int windowSiz
 	// init kiss fft and allocate temp array for window ffts https://github.com/mborgerding/kissfft
 	kiss_fftr_cfg cfg = kiss_fftr_alloc(ncolumns, false, 0, 0);
 	kiss_fft_cpx *windowfft = (kiss_fft_cpx *)malloc(ncolumns * sizeof(kiss_fft_cpx *));
-	float *rowSamples = (float *)malloc(ncolumns * sizeof(float));
+	
+	float * rowSamples = (float *)malloc(ncolumns * sizeof(float)); //samples combined with zeroPadding
+	for (int i= 0; i < ncolumns; i++){
+		rowSamples[i] = 0.0f; // fill with ZerosFor ZeroPadding
+	}
 	//every Row contains a fft of a segment
 	for (int i = 0; i < nrows; i++)
 	{
 		//calculate fft of respective segment
-		kiss_fftr(cfg, samples + (i * windowDistance), windowfft); //TODO: implement zeroPadding
+		*rowSamples=*samples + (i * windowDistance); // fill first elements only, appending zeros are not overwritten.
+		kiss_fftr(cfg, rowSamples, windowfft); //TODO: implement zeroPadding
 		for (int j = 0; j < ncolumns; j++)
 		{ //fill in fft data
 			mfft[i][j] = abs(windowfft[j]);
