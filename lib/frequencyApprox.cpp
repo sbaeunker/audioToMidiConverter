@@ -125,14 +125,18 @@ float **FrequencyApprox::movingFFT(float *samples, int sampleSize, int windowSiz
 	kiss_fft_cpx *windowfft = (kiss_fft_cpx *)malloc(ncolumns * sizeof(kiss_fft_cpx *));
 	
 	float * rowSamples = (float *)malloc(ncolumns * sizeof(float)); //samples combined with zeroPadding
-	for (int i= 0; i < ncolumns; i++){
-		rowSamples[i] = 0.0f; // fill with ZerosFor ZeroPadding
-	}
+	
 	//every Row contains a fft of a segment
 	for (int i = 0; i < nrows; i++)
 	{
 		//calculate fft of respective segment
-		*rowSamples=*samples + (i * windowDistance); // fill first elements only, appending zeros are not overwritten.
+		for (int j= 0; j < ncolumns; j++){//combining samples with zeroPadding
+			if(j< windowSize){
+				rowSamples[j] =*(samples + (i * windowDistance) + j); //signal in front
+			}else{
+				rowSamples[j] = 0.0f; // fill with ZerosFor ZeroPadding
+			}		
+		}	
 		kiss_fftr(cfg, rowSamples, windowfft); //TODO: implement zeroPadding
 		for (int j = 0; j < ncolumns; j++)
 		{ //fill in fft data
